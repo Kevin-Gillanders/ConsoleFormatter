@@ -55,6 +55,7 @@ struct Pixel
 {
     Coordinate coordinates;
     wchar_t cur;
+    //char cur;
 };
 
 int CoordToInt(Pixel c, int sWidth)
@@ -145,11 +146,19 @@ int main()
     int wWidth = 25, wHeight = 15;
 
     wchar_t* screen = new wchar_t[sWidth * sHeight];
-    HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-    SetConsoleActiveScreenBuffer(hConsole);
+    auto conCol = ConsoleColour::BRIGHT_GREEN;
+    //char* screen = new char[sWidth * sHeight];
+    //HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+    //SetConsoleActiveScreenBuffer(hConsole);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
     DWORD dwBytesWritten = 0;
 
-    Pixel cursor{ 0, 0, L'@' };
+    //GetConsoleMode(hConsole, &dwBytesWritten);
+    //dwBytesWritten |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    //SetConsoleMode(hConsole, dwBytesWritten);
+
+    Pixel cursor{ 0, 0, '@' };
 
     //char *screen = new char[width * height];
     auto t1 = chrono::system_clock::now();
@@ -248,6 +257,15 @@ int main()
 
             screenPixels[pos].cur = L'+';
         }
+        if (NewKeyState[VK_SHIFT].isPressed)
+        {
+            if (conCol == GREEN)
+                conCol = RED;
+            else
+                conCol = GREEN;
+
+            console.SetColour(conCol);
+        }
 
         int pos = cursor.coordinates.X + (cursor.coordinates.Y * sWidth);
         screen[pos] = cursor.cur;
@@ -255,11 +273,23 @@ int main()
         t2 = chrono::system_clock::now();
 
         std::chrono::duration<double> elapsed_seconds = t2 - t1;
-        //swprintf_s(screen, 40, L"fps %3.2f", 1.0f / elapsed_seconds.count());
+        swprintf_s(screen, 40, L"fps %3.2f", 1.0f / elapsed_seconds.count());
 
-        screen[sWidth * sHeight - 1] = '\0';
-        WriteConsoleOutputCharacter(hConsole, screen, sWidth * sHeight, { 0,0 }, &dwBytesWritten);
+        //screen[sWidth * sHeight - 1] = '\0';
+        
+        
+        
+        //console.ClearConsole();
+        console.ResetPosition();
 
+        fwrite(screen, (sizeof(wchar_t) * sWidth* sHeight), 1, stdout);
+        //WriteConsoleOutputCharacter(hConsole, str, len, { 0,0 }, &dwBytesWritten);
+        //WriteConsoleOutputCharacter(hConsole, screen, sWidth * sHeight, { 0,0 }, &dwBytesWritten);
+        
+        //console.SetColour(ConsoleColour::BLUE);
+        //console.ClearConsole();
+        //console.ResetPosition();
+        //cout << screen;
 
         t1 = t2;
         //break;
@@ -272,3 +302,5 @@ int main()
     cin >> x;
     return 0;
 }
+
+
